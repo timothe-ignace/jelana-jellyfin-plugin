@@ -1,0 +1,24 @@
+[
+  {
+    "guid": "e39f03aa-67c1-49f3-941e-491ce0ac47e5",
+    "name": "Jelana",
+    "owner": "timothe-ignace",
+    "category": "General",
+    "overview": "Cached Jellyfin analytics, restricted to administrators. Requires Jellyfin 12 and Playback Reporting.",
+    "description": "Administrator-only fork of Jelana. Every /Jelana endpoint requires an admin; no anonymous endpoints and no token handling in URLs or browser storage. Playback Reporting is read only during scheduled cache refreshes.",
+    "imageUrl": "https://raw.githubusercontent.com/timothe-ignace/jelana-jellyfin-plugin/main/assets/jelana-logo-chroma.png",
+    "versions": [
+      {
+        "version": "0.2.8.0",
+        "changelog": "Administrator-only: all endpoints require Jellyfin's RequiresElevation policy. Removed anonymous endpoints, the standalone page, JS Injector menu loader and all access-token handling. Inlined assets, no-store API responses, whitelisted SQL fragments.",
+        "targetAbi": "12.0.0.0",
+        "sourceUrl": "https://github.com/timothe-ignace/jelana-jellyfin-plugin/releases/download/0.2.8.0/Jelana_0.2.8.0_jf12.0.0.zip",
+        "checksum": "D009B1F6AA96E00D0CE4003F51040885",
+        "timestamp": "2026-11-12T08:20:00Z",
+        "dependencies": [
+          "5c534381-91a3-43cb-907a-35aa02eb9d2c"
+        ]
+      }
+    ]
+  }
+]

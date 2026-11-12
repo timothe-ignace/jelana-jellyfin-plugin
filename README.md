@@ -65,9 +65,13 @@ Arr Watch or the old standalone PHP application.
 
 1. Install Playback Reporting from the official Jellyfin plugin catalog and
    allow it to begin recording playback.
-2. Build this fork (see **Build**) and copy `Jellyfin.Plugin.Jelana.dll` into a
-   `Jelana` folder inside Jellyfin's plugin directory.
-3. Restart Jellyfin.
+2. In Jellyfin, add this plugin repository (Dashboard → Plugins → Repositories):
+
+   ```text
+   https://raw.githubusercontent.com/timothe-ignace/jelana-jellyfin-plugin/main/manifest.json
+   ```
+
+3. Install Jelana and restart Jellyfin. (Or build from source, see **Build**.)
 4. Run **Dashboard → Scheduled Tasks → Jelana → Refresh Jelana analytics
    snapshot**, or wait for the startup/hourly refresh.
 
