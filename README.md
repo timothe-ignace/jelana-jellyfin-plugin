@@ -6,7 +6,7 @@ A standalone, cache-first analytics plugin for Jellyfin.
 
 | Jellyfin server | Jelana version | Download |
 | --- | --- | --- |
-| Jellyfin 12.0 or later | Jelana 0.2.x | Install the latest release from the repository catalog |
+| Jellyfin 12.0 or later | Jelana 0.2.x (admin-only fork) | Install the latest release from the repository catalog |
 | Jellyfin 10.11.x | Jelana 0.1.25.0 | [Download Jelana 0.1.25.0 for Jellyfin 10.11](https://github.com/skijk/jellyfin-plugin-jelana-repository/releases/download/0.1.25.0/Jelana_0.1.25.0_jf10.11.11.zip) |
 
 **Jelana 0.2.0.0 and later require Jellyfin 12 and cannot be installed on
@@ -56,7 +56,6 @@ the Statistics page cannot touch Playback Reporting or scan the media library.
 | --- | --- | --- |
 | Jellyfin Server 12.0 | Required | Supported server and plugin ABI |
 | [Playback Reporting](https://github.com/jellyfin/jellyfin-plugin-playbackreporting) | Required | Historical playback source read only by the scheduled cache job |
-| JS Injector | Optional | Adds an Analytics link to the Jellyfin 12 user menu, with a legacy Jellyfin 10 menu fallback |
 | [JellySpotlight](https://github.com/skijk/jellyfin-plugin-jellyspotlight) | Optional consumer | Can display Jelana's cached Trending and Popular new arrivals data |
 
 Jelana does not require File Transformation, JellySpotlight, JellyBulletin,
@@ -66,13 +65,9 @@ Arr Watch or the old standalone PHP application.
 
 1. Install Playback Reporting from the official Jellyfin plugin catalog and
    allow it to begin recording playback.
-2. Add the Jelana repository:
-
-   ```text
-   https://raw.githubusercontent.com/skijk/jellyfin-plugin-jelana-repository/main/manifest.json
-   ```
-
-3. Install Jelana and restart Jellyfin.
+2. Build this fork (see **Build**) and copy `Jellyfin.Plugin.Jelana.dll` into a
+   `Jelana` folder inside Jellyfin's plugin directory.
+3. Restart Jellyfin.
 4. Run **Dashboard → Scheduled Tasks → Jelana → Refresh Jelana analytics
    snapshot**, or wait for the startup/hourly refresh.
 
@@ -85,34 +80,24 @@ dotnet build Jellyfin.Plugin.Jelana.sln --configuration Release
 Install the resulting DLL in a `Jelana` directory below Jellyfin's plugin
 directory, then restart Jellyfin.
 
-## Menu link for regular users
+## Access control (this fork)
 
-Jellyfin does not expose server plugin pages in the regular user menu. With JS
-Injector, Jelana can add **Analytics** for every signed-in user. Add this loader
-to JS Injector:
+This fork is **administrator-only**.
 
-```js
-(() => {
-    const loadJelanaMenu = () => {
-        if (!window.ApiClient) {
-            window.setTimeout(loadJelanaMenu, 500);
-            return;
-        }
+- Every `/Jelana/*` endpoint uses Jellyfin's `RequiresElevation` policy:
+  non-admin users, API keys without admin rights and anonymous requests get
+  401/403. Nothing is `[AllowAnonymous]`.
+- The standalone `/Jelana/User` page, the `Menu.js` loader and the JS Injector
+  integration were removed. Analytics are shown only on the dashboard plugin
+  page (**Dashboard → Analytics**), where Jellyfin's own web client supplies
+  authentication.
+- Removed token handling: no access token in URLs, `sessionStorage`, or
+  `localStorage`, and no `api_key` query parameter.
+- CSS and JS are inlined in the plugin page; API responses are `no-store`.
+- Jellyfin itself serves the plugin page's static HTML shell without
+  authentication (`/web/ConfigurationPage?name=Jelana`). It contains no data.
+- Prebuilt binaries were removed from the repository: build from source.
+- Versions here are based on upstream 0.2.7.0, which was verified to match the
+  published release DLL.
 
-        if (document.getElementById('jelana-menu-loader')) return;
-        const script = document.createElement('script');
-        script.id = 'jelana-menu-loader';
-        script.src = ApiClient.getUrl('Jelana/Menu.js', { version: '0.2.7.0' });
-        document.head.appendChild(script);
-    };
-
-    loadJelanaMenu();
-})();
-```
-
-In Jellyfin 12, the link is placed below **Jellyfin Enhanced** when available,
-or immediately above **Dashboard** otherwise. Analytics opens inside Jellyfin's
-authenticated web shell, keeping the top navigation and user menu visible. The
-legacy Jellyfin 10 menu and standalone `/Jelana/User` page remain supported.
-Menu behavior and future compatibility fixes remain bundled in Jelana itself. Enable
-**Requires Authentication** for this script in JS Injector.
+See [SECURITY.md](SECURITY.md).
