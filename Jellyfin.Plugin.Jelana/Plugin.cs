@@ -12,7 +12,7 @@ public sealed class Plugin : BasePlugin<PluginConfiguration>, IHasWebPages
     public Plugin(IApplicationPaths paths, IXmlSerializer serializer) : base(paths, serializer) => Instance = this;
     public static Plugin Instance { get; private set; } = null!;
     public override string Name => "Jelana";
-    public override string Description => "Cached Jellyfin analytics backed by Playback Reporting. JS Injector is optional for regular-user menu access.";
+    public override string Description => "Cached Jellyfin analytics backed by Playback Reporting. Restricted to Jellyfin administrators.";
     public override Guid Id => Guid.Parse("e39f03aa-67c1-49f3-941e-491ce0ac47e5");
 
     public IEnumerable<PluginPageInfo> GetPages()

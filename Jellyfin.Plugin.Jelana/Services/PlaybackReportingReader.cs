@@ -61,7 +61,7 @@ public sealed class PlaybackReportingReader
             await TopUsersAsync(connection, 30, cancellationToken).ConfigureAwait(false),
             await TopUsersAsync(connection, null, cancellationToken).ConfigureAwait(false),
             await PlaybackMethodsAsync(connection, 30, cancellationToken).ConfigureAwait(false),
-            await CountsAsync(connection, "COALESCE(NULLIF(ClientName, ''), NULLIF(DeviceName, ''), 'Unknown')", 30, 6, cancellationToken).ConfigureAwait(false),
+            await CountsAsync(connection, CountColumn.Client, 30, 6, cancellationToken).ConfigureAwait(false),
             await ActivityAsync(connection, 30, cancellationToken).ConfigureAwait(false),
             new MonthlyTrend(
                 await SummaryAsync(connection, 30, cancellationToken).ConfigureAwait(false),
@@ -192,11 +192,21 @@ public sealed class PlaybackReportingReader
         return result;
     }
 
+    private enum CountColumn { Client }
+
+    // SQL text comes only from this fixed mapping, never from runtime input.
+    private static string CountExpression(CountColumn column) => column switch
+    {
+        CountColumn.Client => "COALESCE(NULLIF(ClientName, ''), NULLIF(DeviceName, ''), 'Unknown')",
+        _ => throw new ArgumentOutOfRangeException(nameof(column))
+    };
+
     private static async Task<IReadOnlyList<NameCount>> CountsAsync(
-        SqliteConnection db, string expression, int days, int limit, CancellationToken token)
+        SqliteConnection db, CountColumn column, int days, int limit, CancellationToken token)
     {
         await using var command = db.CreateCommand();
-        command.CommandText = $"SELECT COALESCE(NULLIF({expression}, ''), 'Unknown'), COUNT(*) FROM PlaybackActivity WHERE DateCreated >= $since GROUP BY 1 ORDER BY 2 DESC LIMIT {limit}";
+        command.CommandText = $"SELECT COALESCE(NULLIF({CountExpression(column)}, ''), 'Unknown'), COUNT(*) FROM PlaybackActivity WHERE DateCreated >= $since GROUP BY 1 ORDER BY 2 DESC LIMIT $limit";
+        command.Parameters.AddWithValue("$limit", Math.Clamp(limit, 1, 100));
         command.Parameters.AddWithValue("$since", Since(days));
         var result = new List<NameCount>();
         await using var rows = await command.ExecuteReaderAsync(token).ConfigureAwait(false);
